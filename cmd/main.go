@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"io/fs"
 	"log"
 	"os"
 	"os/signal"
@@ -20,6 +19,7 @@ import (
 func main() {
 	err := bootstrap.Run(
 		env.Load,
+		vite.Load,
 	)
 
 	if err != nil {
@@ -29,18 +29,12 @@ func main() {
 	app := fiber.New()
 	app.Use(logger.New())
 
-	var viteFS fs.FS
-	viteFS, err = vite.Load()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	api := app.Group("/api")
 	api.Get("/health", handlers.Health)
 	api.Use(func(c fiber.Ctx) error { return c.SendStatus(fiber.StatusNotFound) })
 
-	app.Use(static.New("", static.Config{FS: viteFS}))
-	app.Use(func(c fiber.Ctx) error { return c.SendFile("index.html", fiber.SendFile{FS: viteFS}) })
+	app.Use(static.New("", static.Config{FS: vite.FS}))
+	app.Use(func(c fiber.Ctx) error { return c.SendFile("index.html", fiber.SendFile{FS: vite.FS}) })
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
 	defer stop()

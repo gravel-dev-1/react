@@ -6,12 +6,18 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"sync"
 
 	"gbfw/internal/env"
 )
 
-//go:embed build/*
-var productionFS embed.FS
+var (
+	//go:embed build/*
+	productionFS embed.FS
+
+	FS   fs.FS
+	once sync.Once
+)
 
 type JSRuntime string
 
@@ -22,16 +28,20 @@ const (
 	JSRuntimeBun  JSRuntime = "bun"
 )
 
-func Load() (fs.FS, error) {
-	if env.IsDev() {
-		cmd := exec.Command(string(env.Getenv(JSRuntimeKey, JSRuntimeNode)), "node_modules/vite/bin/vite", "--host")
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Start(); err != nil {
-			log.Println(err)
+func Load() (err error) {
+	once.Do(func() {
+		if !env.IsDev() {
+			FS = os.DirFS("internal/vite/dev")
+		} else {
+			cmd := exec.Command(string(env.Getenv(JSRuntimeKey, JSRuntimeNode)), "node_modules/vite/bin/vite", "--host")
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			if err := cmd.Start(); err != nil {
+				log.Println(err)
+			}
+			FS, err = fs.Sub(productionFS, "build")
 		}
-		return os.DirFS("internal/vite/dev"), nil
-	}
+	})
 
-	return fs.Sub(productionFS, "build")
+	return err
 }
