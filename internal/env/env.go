@@ -3,6 +3,7 @@ package env
 import (
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/joho/godotenv"
@@ -29,7 +30,7 @@ func Load() (err error) {
 			return
 		}
 
-		environment = Environment(os.Getenv(EnvironmentKey))
+		environment = Environment(Get(EnvironmentKey))
 		switch environment {
 		case EnvironmentDevelopment, EnvironmentProduction:
 			return
@@ -45,12 +46,22 @@ func Load() (err error) {
 	})
 	return err
 }
+func Get[T ~string](key T, defaultValue ...T) T {
+	var val string
 
-func Getenv[T ~string](key T, defaultValue T) T {
 	if value, ok := os.LookupEnv(string(key)); ok {
-		return T(value)
+		val = value
+	} else if len(defaultValue) > 0 {
+		val = string(defaultValue[0])
+	} else {
+		return ""
 	}
-	return defaultValue
+
+	if strings.IndexByte(val, '$') >= 0 {
+		val = os.ExpandEnv(val)
+	}
+
+	return T(val)
 }
 
 func IsDev() bool { return environment == EnvironmentDevelopment }

@@ -32,7 +32,7 @@ func Load() (err error) {
 	once.Do(func() {
 		FS, err = fs.Sub(productionFS, "build")
 		if env.IsDev() {
-			cmd := exec.Command(string(env.Getenv(JSRuntimeKey, JSRuntimeNode)), "node_modules/vite/bin/vite", "--host")
+			cmd := exec.Command(string(env.Get(JSRuntimeKey, JSRuntimeNode)), "node_modules/vite/bin/vite", "--host")
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 			if err := cmd.Start(); err != nil {
