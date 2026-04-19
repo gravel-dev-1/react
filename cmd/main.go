@@ -40,4 +40,8 @@ func main() {
 	}()
 
 	<-ctx.Done()
+
+	if err := app.Shutdown(); err != nil {
+		log.Fatalln(err)
+	}
 }

@@ -5,7 +5,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, import.meta.dirname);
 
   return {
-    build: { outDir: "internal/vite/build" },
+    build: { outDir: "internal/resources/vite/build" },
     clearScreen: false,
     resolve: {
       alias: {
