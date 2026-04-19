@@ -20,8 +20,6 @@ type Environment string
 
 type Service struct{ Environment }
 
-var IsDev bool
-
 // Start initializes and starts the service. It implements the [fiber.Service] interface.
 func (s *Service) Start(ctx context.Context) (err error) {
 	// Shadowed on purpose
@@ -30,7 +28,6 @@ func (s *Service) Start(ctx context.Context) (err error) {
 	}
 
 	s.Environment = Environment(Get("ENVIRONMENT"))
-	IsDev = s.Environment == EnvironmentDevelopment
 	switch s.Environment {
 	case EnvironmentDevelopment, EnvironmentProduction:
 		return err
@@ -76,3 +73,5 @@ func Get[T ~string](key T, defaultValue ...T) T {
 
 	return T(val)
 }
+
+func IsDev() bool { return Get[Environment](EnvironmentKey) == EnvironmentDevelopment }

@@ -22,7 +22,7 @@ type Service struct{}
 
 func (s *Service) Start(context.Context) (err error) {
 	FS, err = fs.Sub(productionFS, "build")
-	if env.IsDev {
+	if env.IsDev() {
 		cmd := exec.Command(string(env.Get("JS_RUNTIME", "node")), "node_modules/vite/bin/vite", "--host")
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
